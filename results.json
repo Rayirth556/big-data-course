@@ -1,0 +1,12 @@
+{
+    "runtime_seconds": 23.13479995727539,
+    "total_executor_run_time_ms": 107595,
+    "shuffle_read_bytes": 118144,
+    "shuffle_write_bytes": 118144,
+    "memory_bytes_spilled": 0,
+    "disk_bytes_spilled": 0,
+    "num_tasks": 1012,
+    "max_task_time_ms": 4604,
+    "median_task_time_ms": 109,
+    "task_skew_ratio": 42.23853211009175
+}
