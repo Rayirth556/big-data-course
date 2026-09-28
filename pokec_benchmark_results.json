@@ -1,0 +1,450 @@
+{
+  "dataset": "soc-pokec",
+  "edges": 30622564,
+  "topology": {
+    "vertices": 1632803,
+    "max_in_deg": 13733,
+    "max_out_deg": 8763,
+    "max_work": 93178405,
+    "p99_in_deg": 133,
+    "p99_out_deg": 129,
+    "num_hubs": 8,
+    "work_threshold": 1000000,
+    "P_cells": 100,
+    "top_hubs": [
+      {
+        "id": 5935,
+        "in_deg": 13733,
+        "out_deg": 6785,
+        "work": 93178405,
+        "r": 14,
+        "s": 7
+      },
+      {
+        "id": 5867,
+        "in_deg": 8215,
+        "out_deg": 8763,
+        "work": 71988045,
+        "r": 9,
+        "s": 10
+      },
+      {
+        "id": 1891,
+        "in_deg": 7613,
+        "out_deg": 7564,
+        "work": 57584732,
+        "r": 10,
+        "s": 9
+      },
+      {
+        "id": 6228,
+        "in_deg": 4855,
+        "out_deg": 3878,
+        "work": 18827690,
+        "r": 11,
+        "s": 8
+      },
+      {
+        "id": 25994,
+        "in_deg": 2235,
+        "out_deg": 4535,
+        "work": 10135725,
+        "r": 7,
+        "s": 14
+      },
+      {
+        "id": 189,
+        "in_deg": 898,
+        "out_deg": 6661,
+        "work": 5981578,
+        "r": 3,
+        "s": 27
+      },
+      {
+        "id": 1830,
+        "in_deg": 2910,
+        "out_deg": 1757,
+        "work": 5112870,
+        "r": 12,
+        "s": 7
+      },
+      {
+        "id": 8413,
+        "in_deg": 1889,
+        "out_deg": 2315,
+        "work": 4373035,
+        "r": 9,
+        "s": 11
+      }
+    ]
+  },
+  "config": {
+    "P_cells": 100,
+    "work_threshold": 1000000,
+    "shuffle_partitions": 200,
+    "warmup_runs": 1,
+    "measured_runs": 3
+  },
+  "results": {
+    "baseline_aqe_off": {
+      "condition": "Baseline (AQE Off)",
+      "aqe": false,
+      "runs": [
+        {
+          "num_tasks": 601,
+          "max_task_ms": 5351,
+          "p95_task_ms": 1207,
+          "median_task_ms": 692,
+          "task_cv": 0.596,
+          "shuffle_read_bytes": 319200259,
+          "shuffle_write_bytes": 319200259,
+          "disk_spill_bytes": 0,
+          "mem_spill_bytes": 0,
+          "wall_clock_s": 117.957,
+          "path_count": 1780294899
+        },
+        {
+          "num_tasks": 601,
+          "max_task_ms": 3325,
+          "p95_task_ms": 1361,
+          "median_task_ms": 678,
+          "task_cv": 0.4704,
+          "shuffle_read_bytes": 319200259,
+          "shuffle_write_bytes": 319200259,
+          "disk_spill_bytes": 0,
+          "mem_spill_bytes": 0,
+          "wall_clock_s": 118.316,
+          "path_count": 1780294899
+        },
+        {
+          "num_tasks": 601,
+          "max_task_ms": 5929,
+          "p95_task_ms": 1422,
+          "median_task_ms": 678,
+          "task_cv": 0.7063,
+          "shuffle_read_bytes": 319200259,
+          "shuffle_write_bytes": 319200259,
+          "disk_spill_bytes": 0,
+          "mem_spill_bytes": 0,
+          "wall_clock_s": 122.266,
+          "path_count": 1780294899
+        }
+      ],
+      "summary": {
+        "wall_clock_s": {
+          "mean": 119.513,
+          "std": 2.391,
+          "raw": [
+            117.957,
+            118.316,
+            122.266
+          ]
+        },
+        "max_task_ms": {
+          "mean": 4868.333,
+          "std": 1367.454,
+          "raw": [
+            5351,
+            3325,
+            5929
+          ]
+        },
+        "p95_task_ms": {
+          "mean": 1330,
+          "std": 110.802,
+          "raw": [
+            1207,
+            1361,
+            1422
+          ]
+        },
+        "median_task_ms": {
+          "mean": 682.667,
+          "std": 8.083,
+          "raw": [
+            692,
+            678,
+            678
+          ]
+        },
+        "task_cv": {
+          "mean": 0.591,
+          "std": 0.118,
+          "raw": [
+            0.596,
+            0.4704,
+            0.7063
+          ]
+        },
+        "shuffle_read_bytes": {
+          "mean": 319200259,
+          "std": 0.0,
+          "raw": [
+            319200259,
+            319200259,
+            319200259
+          ]
+        },
+        "shuffle_write_bytes": {
+          "mean": 319200259,
+          "std": 0.0,
+          "raw": [
+            319200259,
+            319200259,
+            319200259
+          ]
+        },
+        "disk_spill_bytes": {
+          "mean": 0,
+          "std": 0.0,
+          "raw": [
+            0,
+            0,
+            0
+          ]
+        },
+        "path_count": 1780294899
+      }
+    },
+    "baseline_aqe_on": {
+      "condition": "Baseline (AQE On)",
+      "aqe": true,
+      "runs": [
+        {
+          "num_tasks": 407,
+          "max_task_ms": 18938,
+          "p95_task_ms": 2855,
+          "median_task_ms": 1129,
+          "task_cv": 1.3551,
+          "shuffle_read_bytes": 319188816,
+          "shuffle_write_bytes": 319188816,
+          "disk_spill_bytes": 19419110,
+          "mem_spill_bytes": 1476394816,
+          "wall_clock_s": 169.389,
+          "path_count": 1780294899
+        },
+        {
+          "num_tasks": 407,
+          "max_task_ms": 34152,
+          "p95_task_ms": 1402,
+          "median_task_ms": 828,
+          "task_cv": 2.6343,
+          "shuffle_read_bytes": 319188816,
+          "shuffle_write_bytes": 319188816,
+          "disk_spill_bytes": 19419110,
+          "mem_spill_bytes": 1476394816,
+          "wall_clock_s": 137.883,
+          "path_count": 1780294899
+        },
+        {
+          "num_tasks": 407,
+          "max_task_ms": 41155,
+          "p95_task_ms": 1851,
+          "median_task_ms": 772,
+          "task_cv": 3.0453,
+          "shuffle_read_bytes": 319188816,
+          "shuffle_write_bytes": 319188816,
+          "disk_spill_bytes": 19419110,
+          "mem_spill_bytes": 1476394816,
+          "wall_clock_s": 143.845,
+          "path_count": 1780294899
+        }
+      ],
+      "summary": {
+        "wall_clock_s": {
+          "mean": 150.372,
+          "std": 16.737,
+          "raw": [
+            169.389,
+            137.883,
+            143.845
+          ]
+        },
+        "max_task_ms": {
+          "mean": 31415,
+          "std": 11358.572,
+          "raw": [
+            18938,
+            34152,
+            41155
+          ]
+        },
+        "p95_task_ms": {
+          "mean": 2036,
+          "std": 743.956,
+          "raw": [
+            2855,
+            1402,
+            1851
+          ]
+        },
+        "median_task_ms": {
+          "mean": 909.667,
+          "std": 192.001,
+          "raw": [
+            1129,
+            828,
+            772
+          ]
+        },
+        "task_cv": {
+          "mean": 2.345,
+          "std": 0.881,
+          "raw": [
+            1.3551,
+            2.6343,
+            3.0453
+          ]
+        },
+        "shuffle_read_bytes": {
+          "mean": 319188816,
+          "std": 0.0,
+          "raw": [
+            319188816,
+            319188816,
+            319188816
+          ]
+        },
+        "shuffle_write_bytes": {
+          "mean": 319188816,
+          "std": 0.0,
+          "raw": [
+            319188816,
+            319188816,
+            319188816
+          ]
+        },
+        "disk_spill_bytes": {
+          "mean": 19419110,
+          "std": 0.0,
+          "raw": [
+            19419110,
+            19419110,
+            19419110
+          ]
+        },
+        "path_count": 1780294899
+      }
+    },
+    "hypercube": {
+      "condition": "Hypercube Planner",
+      "aqe": false,
+      "runs": [
+        {
+          "num_tasks": 1602,
+          "max_task_ms": 5117,
+          "p95_task_ms": 713,
+          "median_task_ms": 478,
+          "task_cv": 0.8328,
+          "shuffle_read_bytes": 328066197,
+          "shuffle_write_bytes": 328066197,
+          "disk_spill_bytes": 0,
+          "mem_spill_bytes": 0,
+          "wall_clock_s": 165.108,
+          "path_count": 1780294899
+        },
+        {
+          "num_tasks": 1602,
+          "max_task_ms": 2918,
+          "p95_task_ms": 1322,
+          "median_task_ms": 465,
+          "task_cv": 0.845,
+          "shuffle_read_bytes": 328066197,
+          "shuffle_write_bytes": 328066197,
+          "disk_spill_bytes": 0,
+          "mem_spill_bytes": 0,
+          "wall_clock_s": 211.152,
+          "path_count": 1780294899
+        },
+        {
+          "num_tasks": 1602,
+          "max_task_ms": 2772,
+          "p95_task_ms": 1140,
+          "median_task_ms": 557,
+          "task_cv": 0.7341,
+          "shuffle_read_bytes": 328066197,
+          "shuffle_write_bytes": 328066197,
+          "disk_spill_bytes": 0,
+          "mem_spill_bytes": 0,
+          "wall_clock_s": 210.231,
+          "path_count": 1780294899
+        }
+      ],
+      "summary": {
+        "wall_clock_s": {
+          "mean": 195.497,
+          "std": 26.322,
+          "raw": [
+            165.108,
+            211.152,
+            210.231
+          ]
+        },
+        "max_task_ms": {
+          "mean": 3602.333,
+          "std": 1313.77,
+          "raw": [
+            5117,
+            2918,
+            2772
+          ]
+        },
+        "p95_task_ms": {
+          "mean": 1058.333,
+          "std": 312.606,
+          "raw": [
+            713,
+            1322,
+            1140
+          ]
+        },
+        "median_task_ms": {
+          "mean": 500,
+          "std": 49.79,
+          "raw": [
+            478,
+            465,
+            557
+          ]
+        },
+        "task_cv": {
+          "mean": 0.804,
+          "std": 0.061,
+          "raw": [
+            0.8328,
+            0.845,
+            0.7341
+          ]
+        },
+        "shuffle_read_bytes": {
+          "mean": 328066197,
+          "std": 0.0,
+          "raw": [
+            328066197,
+            328066197,
+            328066197
+          ]
+        },
+        "shuffle_write_bytes": {
+          "mean": 328066197,
+          "std": 0.0,
+          "raw": [
+            328066197,
+            328066197,
+            328066197
+          ]
+        },
+        "disk_spill_bytes": {
+          "mean": 0,
+          "std": 0.0,
+          "raw": [
+            0,
+            0,
+            0
+          ]
+        },
+        "path_count": 1780294899
+      }
+    }
+  }
+}

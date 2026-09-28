@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+
+# Large Datasets & Generated Parquet Files
+soc-pokec-relationships.txt
+soc-pokec-relationships.txt.gz
+pokec_edges_parquet/
+*.parquet
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Tooling & Editor configs
+.agents/
+.claude/
+.vscode/
+.idea/
+
+# OS specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store

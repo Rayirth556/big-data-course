@@ -1,0 +1,156 @@
+[
+  {
+    "query": "GraphFrames: An Integrated API for Mixing Graph and Relational Queries",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "query": "Adaptive Query Execution: Speeding Up Spark SQL at Runtime",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "query": "Optimizing Joins in a MapReduce Environment Afrati",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "query": "Optimizing Multiway Joins in a Map-Reduce Environment",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "query": "SharesSkew: An Algorithm to Handle Skew for Joins in MapReduce",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "query": "An Effective Algorithm for Parallelizing Sort-Merge Joins in the Presence of Data Skew DeWitt",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "query": "Skew in Parallel Query Processing Beame",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "query": "Considering Data Skew Factor in Multi-way Join Query Optimization for Parallel Execution",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "paperId": "2d1dc3af8028d98ee72a854ce1698477d5f89ef7",
+    "url": "https://www.semanticscholar.org/paper/2d1dc3af8028d98ee72a854ce1698477d5f89ef7",
+    "title": "Scaling and Load-Balancing Equi-Joins",
+    "venue": "ACM Transactions on Database Systems",
+    "year": 2022,
+    "citationCount": 2,
+    "authors": [
+      {
+        "authorId": "2302861061",
+        "name": "Ahmed Metwally"
+      }
+    ]
+  },
+  {
+    "query": "PowerGraph: Distributed Graph-Parallel Computation on Natural Graphs",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "paperId": "493ee0ca34fac1fd94f82a3dfa60f5a4cbc6d8be",
+    "url": "https://www.semanticscholar.org/paper/493ee0ca34fac1fd94f82a3dfa60f5a4cbc6d8be",
+    "title": "Distributed Power-law Graph Computing: Theoretical and Empirical Analysis",
+    "venue": "Neural Information Processing Systems",
+    "year": 2014,
+    "citationCount": 163,
+    "authors": [
+      {
+        "authorId": "144586627",
+        "name": "Cong Xie"
+      },
+      {
+        "authorId": "2029029615",
+        "name": "Lin Yan"
+      },
+      {
+        "authorId": "2108767848",
+        "name": "Wu-Jun Li"
+      },
+      {
+        "authorId": "47294286",
+        "name": "Zhihua Zhang"
+      }
+    ]
+  },
+  {
+    "query": "GraphPi: High Performance Graph Pattern Matching through Effective Redundancy Elimination",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "query": "Dryadic: Flexible and Fast Graph Pattern Matching at Scale",
+    "error": "HTTP Error 429: "
+  },
+  {
+    "paperId": "36f631f70ab979d3248293a35ae40f8633ec7018",
+    "url": "https://www.semanticscholar.org/paper/36f631f70ab979d3248293a35ae40f8633ec7018",
+    "title": "GLogS: Interactive Graph Pattern Matching Query At Large Scale",
+    "venue": "USENIX Annual Technical Conference",
+    "year": 2023,
+    "citationCount": 10,
+    "authors": [
+      {
+        "authorId": "2430095",
+        "name": "Longbin Lai"
+      },
+      {
+        "authorId": "2282090916",
+        "name": "Yufan Yang"
+      },
+      {
+        "authorId": "2305451082",
+        "name": "Zhibin Wang"
+      },
+      {
+        "authorId": "2144425778",
+        "name": "Yuxuan Liu"
+      },
+      {
+        "authorId": "47899732",
+        "name": "Haotian Ma"
+      },
+      {
+        "authorId": "1883576391",
+        "name": "Sijie Shen"
+      },
+      {
+        "authorId": "3418946",
+        "name": "Bingqing Lyu"
+      },
+      {
+        "authorId": "2109664952",
+        "name": "Xiaoli Zhou"
+      },
+      {
+        "authorId": "37681774",
+        "name": "Wenyuan Yu"
+      },
+      {
+        "authorId": "2003626",
+        "name": "Zhengping Qian"
+      },
+      {
+        "authorId": "1664352138",
+        "name": "Chen Tian"
+      },
+      {
+        "authorId": "2219554987",
+        "name": "Sheng Zhong"
+      },
+      {
+        "authorId": "2114033769",
+        "name": "Yeh-Ching Chung"
+      },
+      {
+        "authorId": "1709595",
+        "name": "Jingren Zhou"
+      }
+    ]
+  },
+  {
+    "query": "Hybrid Edge Partitioner: Partitioning Large Power-Law Graphs under Memory Constraints",
+    "error": "HTTP Error 429: "
+  }
+]

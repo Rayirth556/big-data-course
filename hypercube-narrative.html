@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypercube Partitioning Narrative</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --text-color: #0f172a;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --accent-blue: #3b82f6;
+            --accent-orange: #f97316;
+            --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
+            --accent-green: #22c55e;
+        }
+
+        :root:not([data-theme="light"]) {
+            @media (prefers-color-scheme: dark) {
+                --bg-color: #0f172a;
+                --text-color: #f8fafc;
+                --card-bg: #1e293b;
+                --border-color: #334155;
+                --accent-blue: #60a5fa;
+                --accent-orange: #fb923c;
+                --accent-purple: #a78bfa;
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --bg-color: #0f172a;
+            --text-color: #f8fafc;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --accent-blue: #60a5fa;
+            --accent-orange: #fb923c;
+            --accent-purple: #a78bfa;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.2s, color 0.2s;
+            overflow-x: hidden;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Animations */
+        @keyframes drawEdge {
+            from { stroke-dashoffset: 100; opacity: 0; }
+            to { stroke-dashoffset: 0; opacity: 1; }
+        }
+        .anim-edge {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: drawEdge 0.5s ease forwards;
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+        .hub-pulse {
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes explodeBar {
+            0% { width: 0%; opacity: 0.5; background-color: var(--accent-blue); }
+            50% { width: 100%; opacity: 1; background-color: var(--accent-orange); }
+            100% { width: 120%; opacity: 1; background-color: var(--accent-red); transform: scaleY(1.5); }
+        }
+        .bar-explode {
+            animation: explodeBar 2s forwards cubic-bezier(0.1, 0.8, 0.2, 1);
+        }
+
+        @keyframes fillSpill {
+            0% { height: 0%; background-color: var(--accent-blue); }
+            70% { height: 100%; background-color: var(--accent-orange); }
+            100% { height: 100%; background-color: var(--accent-red); }
+        }
+
+        .buffer-fill {
+            animation: fillSpill 4s forwards linear;
+        }
+
+        @keyframes flyInRow {
+            0% { transform: translate(-100px, -50px) scale(0.5); opacity: 0; }
+            50% { transform: translate(0, 0) scale(1.2); opacity: 1; }
+            100% { transform: translate(0, 0) scale(1); opacity: 1; }
+        }
+        @keyframes flyInCol {
+            0% { transform: translate(100px, -50px) scale(0.5); opacity: 0; }
+            50% { transform: translate(0, 0) scale(1.2); opacity: 1; }
+            100% { transform: translate(0, 0) scale(1); opacity: 1; }
+        }
+
+        .fly-in-blue { animation: flyInRow 0.8s forwards; }
+        .fly-in-orange { animation: flyInCol 0.8s forwards; }
+
+        @keyframes replicateRow {
+            0% { opacity: 0; transform: scaleX(0); transform-origin: left; }
+            100% { opacity: 1; transform: scaleX(1); transform-origin: left; }
+        }
+        @keyframes replicateCol {
+            0% { opacity: 0; transform: scaleY(0); transform-origin: top; }
+            100% { opacity: 1; transform: scaleY(1); transform-origin: top; }
+        }
+
+        .rep-row { animation: replicateRow 1s forwards ease-out; }
+        .rep-col { animation: replicateCol 1s forwards ease-out; }
+
+        @keyframes highlightCell {
+            0% { background-color: transparent; border-color: transparent; transform: scale(1); }
+            50% { background-color: rgba(139, 92, 246, 0.8); border-color: var(--accent-purple); transform: scale(1.2); box-shadow: 0 0 15px var(--accent-purple); }
+            100% { background-color: rgba(139, 92, 246, 0.5); border-color: var(--accent-purple); transform: scale(1); }
+        }
+        .cell-highlight { animation: highlightCell 1s forwards; }
+
+        .rail-btn {
+            transition: all 0.2s;
+        }
+        .rail-btn.active {
+            background-color: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+        .rail-btn.completed {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        /* Generic fade transition for stage switching */
+        .stage-enter {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: rgba(148, 163, 184, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        const STAGES = [
+            { id: 1, title: "The Graph & Hub", duration: 8000 },
+            { id: 2, title: "Naive SMJ Buffering", duration: 8000 },
+            { id: 3, title: "AQE Misses", duration: 8000 },
+            { id: 4, title: "Computing (r,s)", duration: 8000 },
+            { id: 5, title: "Grid Partitioning", duration: 12000 },
+            { id: 6, title: "Bounded Join", duration: 6000 },
+            { id: 7, title: "Summary", duration: 999999 } // Manual advance
+        ];
+
+        // --- STAGE COMPONENTS ---
+
+        function Stage1GraphHub({ isPlaying, speed }) {
+            const [tick, setTick] = useState(0);
+
+            useEffect(() => {
+                if (!isPlaying) return;
+                const interval = setInterval(() => {
+                    setTick(t => Math.min(t + 1, 100));
+                }, 50 / speed);
+                return () => clearInterval(interval);
+            }, [isPlaying, speed]);
+
+            const dIn = Math.min(Math.floor(tick * 40), 4000);
+            const dOut = Math.min(Math.floor(tick * 40), 4000);
+            const output = dIn * dOut;
+            const bytes = Math.floor((dIn + dOut) * 100 / 1024); // KB
+
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 stage-enter">
+                    <div className="card p-6 flex flex-col items-center justify-center min-h-[400px] relative overflow-hidden">
+                        <h3 className="text-xl font-bold mb-6 text-center">Power-Law Graph</h3>
+                        {/* Abstract Graph Vis */}
+                        <div className="relative w-64 h-64">
+                            {/* Hub */}
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-[var(--accent-purple)] rounded-full z-10 flex items-center justify-center text-white font-bold hub-pulse">
+                                Hub
+                            </div>
+
+                            {/* Satellites & Edges */}
+                            <svg className="absolute inset-0 w-full h-full" style={{zIndex: 0}}>
+                                {Array.from({length: 12}).map((_, i) => {
+                                    const show = tick > i * 8;
+                                    const angle = (i / 12) * Math.PI * 2;
+                                    const x = 128 + Math.cos(angle) * 100;
+                                    const y = 128 + Math.sin(angle) * 100;
+                                    const isIn = i % 2 === 0;
+                                    return show && (
+                                        <g key={i}>
+                                            <line
+                                                x1={isIn ? x : 128} y1={isIn ? y : 128}
+                                                x2={isIn ? 128 : x} y2={isIn ? 128 : y}
+                                                stroke={isIn ? "var(--accent-blue)" : "var(--accent-orange)"}
+                                                strokeWidth="2"
+                                                className="anim-edge"
+                                            />
+                                            <circle cx={x} cy={y} r="6" fill="var(--text-color)" opacity="0.5" />
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div className="card p-6 flex flex-col justify-center space-y-8 min-h-[400px]">
+                        <div>
+                            <h3 className="text-xl font-bold border-b border-[var(--border-color)] pb-2 mb-4">The Skew Disconnect</h3>
+                            <p className="opacity-80 mb-6">A hub vertex can have modest raw byte size, but produce a catastrophic Cartesian output explosion in motif joins.</p>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="flex justify-between font-mono text-sm">
+                                <span>Incoming (d⁻): <span style={{color: 'var(--accent-blue)'}}>{dIn.toLocaleString()}</span></span>
+                                <span>Outgoing (d⁺): <span style={{color: 'var(--accent-orange)'}}>{dOut.toLocaleString()}</span></span>
+                            </div>
+
+                            <div className="space-y-1 mt-6">
+                                <div className="flex justify-between text-sm font-semibold">
+                                    <span>Raw Byte Size</span>
+                                    <span>{bytes} KB</span>
+                                </div>
+                                <div className="w-full bg-[var(--border-color)] h-4 rounded overflow-hidden">
+                                    <div className="h-full bg-[var(--accent-green)] transition-all duration-200" style={{width: `${Math.min((bytes / 256000) * 100, 5)}%`}}></div>
+                                </div>
+                                <p className="text-xs opacity-60 text-right">Extremely small footprint</p>
+                            </div>
+
+                            <div className="space-y-1 mt-6 relative">
+                                <div className="flex justify-between text-sm font-semibold">
+                                    <span>Output Cardinality (d⁻ × d⁺)</span>
+                                    <span className="text-[var(--accent-red)]">{output.toLocaleString()} Rows</span>
+                                </div>
+                                <div className="w-full bg-[var(--border-color)] h-4 rounded overflow-visible relative">
+                                    {tick > 10 ? (
+                                        <div className="h-full absolute top-0 left-0 bar-explode shadow-lg rounded" style={{ animationPlayState: isPlaying ? 'running' : 'paused' }}></div>
+                                    ) : (
+                                        <div className="h-full bg-[var(--accent-blue)] w-0"></div>
+                                    )}
+                                </div>
+                                <p className="text-xs opacity-60 text-right mt-2 text-[var(--accent-red)] font-bold">Computational Skew Explosion!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Stage2NaiveSMJ({ isPlaying, speed }) {
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 stage-enter">
+                    <div className="card p-6 min-h-[400px] flex flex-col">
+                        <h3 className="text-xl font-bold mb-4 border-b border-[var(--border-color)] pb-2">SortMergeJoin Execution</h3>
+                        <p className="text-sm opacity-80 mb-6">Spark buffers rows with matching keys in an <code className="bg-[var(--border-color)] px-1 rounded">ExternalAppendOnlyUnsafeRowArray</code>.</p>
+
+                        <div className="flex-1 flex flex-col items-center justify-center relative">
+                            {/* Incoming Streams */}
+                            <div className="absolute top-0 flex gap-12 w-full justify-center">
+                                <div className="flex flex-col items-center">
+                                    <span className="text-xs font-bold text-[var(--accent-blue)] mb-2">e1 (d⁻)</span>
+                                    <div className="w-2 h-16 bg-gradient-to-b from-transparent to-[var(--accent-blue)] opacity-70"></div>
+                                </div>
+                                <div className="flex flex-col items-center">
+                                    <span className="text-xs font-bold text-[var(--accent-orange)] mb-2">e2 (d⁺)</span>
+                                    <div className="w-2 h-16 bg-gradient-to-b from-transparent to-[var(--accent-orange)] opacity-70"></div>
+                                </div>
+                            </div>
+
+                            {/* Buffer Container */}
+                            <div className="w-48 h-48 border-4 border-[var(--border-color)] border-t-0 rounded-b-xl relative overflow-hidden mt-16 bg-[var(--bg-color)]">
+                                <div className="absolute bottom-0 w-full buffer-fill" style={{ animationPlayState: isPlaying ? 'running' : 'paused', animationDuration: `${4/speed}s` }}></div>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-white z-10 drop-shadow-md">
+                                    <span className="font-bold text-lg mix-blend-difference">Buffer</span>
+                                </div>
+                            </div>
+
+                            {/* Alert */}
+                            <div className="absolute bottom-[-10px] bg-[var(--accent-red)] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg opacity-0 animate-[fadeIn_0.5s_forwards]" style={{ animationDelay: `${3/speed}s`, animationPlayState: isPlaying ? 'running' : 'paused' }}>
+                                ⚠️ DISK SPILL ⚠️
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="card p-6 min-h-[400px]">
+                        <h3 className="text-xl font-bold mb-4 border-b border-[var(--border-color)] pb-2">Cluster Task Duration</h3>
+                        <div className="space-y-4 mt-8 font-mono text-sm">
+                            {[1, 2, 3, 4].map(task => {
+                                const isHub = task === 3;
+                                const delay = `${(task * 0.2)/speed}s`;
+                                return (
+                                    <div key={task} className="flex items-center gap-3">
+                                        <div className="w-16 text-right opacity-70">Task {task}</div>
+                                        <div className="flex-1 bg-[var(--border-color)] h-6 rounded overflow-hidden">
+                                            <div
+                                                className={`h-full ${isHub ? 'bg-[var(--accent-red)]' : 'bg-[var(--accent-green)]'}`}
+                                                style={{
+                                                    width: isHub ? '95%' : '15%',
+                                                    transition: `width ${isHub ? 4/speed : 0.5/speed}s linear`,
+                                                    transitionDelay: delay
+                                                }}
+                                            ></div>
+                                        </div>
+                                        <div className="w-12 text-right">
+                                            {isHub ? <span className="text-[var(--accent-red)] font-bold">45.0s</span> : <span className="text-[var(--accent-green)]">0.5s</span>}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="mt-12 p-4 bg-[var(--accent-red)] bg-opacity-10 border border-[var(--accent-red)] rounded text-sm">
+                            <strong>Straggler Problem:</strong> The hub key forces Task 3 to process 16M motif combinations locally, bottlenecking the entire stage while other tasks sit idle.
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Stage3AQEMisses({ isPlaying, speed }) {
+            const [tick, setTick] = useState(0);
+
+            useEffect(() => {
+                if (!isPlaying) return;
+                const interval = setInterval(() => {
+                    setTick(t => Math.min(t + 1, 100));
+                }, 80 / speed);
+                return () => clearInterval(interval);
+            }, [isPlaying, speed]);
+
+            return (
+                <div className="card p-6 stage-enter flex flex-col min-h-[500px]">
+                    <h3 className="text-xl font-bold mb-2">AQE Checks & Misses</h3>
+                    <p className="text-sm opacity-80 mb-6">Spark AQE uses generic size thresholds. It cannot see computational skew.</p>
+
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Logic Gate */}
+                        <div className="bg-[var(--bg-color)] rounded-lg p-4 border border-[var(--border-color)] flex flex-col items-center justify-center relative">
+                            <div className="font-bold mb-4 text-center">AQE Skew Join Logic</div>
+                            <div className="w-full p-3 border-2 border-[var(--border-color)] rounded mb-4 text-center bg-[var(--card-bg)]">
+                                <div className="text-xs opacity-70">Gate 1: Absolute Size</div>
+                                <div className="font-mono">{">"} 256 MB?</div>
+                            </div>
+                            <div className="h-4 w-0.5 bg-[var(--border-color)]"></div>
+                            <div className="text-xs absolute top-[135px] right-[40px] opacity-70">AND</div>
+                            <div className="w-full p-3 border-2 border-[var(--border-color)] rounded text-center bg-[var(--card-bg)] mt-4">
+                                <div className="text-xs opacity-70">Gate 2: Relative Size</div>
+                                <div className="font-mono">{">"} 5x Median?</div>
+                            </div>
+                        </div>
+
+                        {/* Scenario 1 */}
+                        <div className="border border-[var(--border-color)] rounded-lg p-4 relative flex flex-col">
+                            <h4 className="font-bold text-center border-b border-[var(--border-color)] pb-2 mb-4">Scenario A: Byte Skew</h4>
+                            <div className="space-y-4 flex-1">
+                                <div className="flex justify-between text-sm">
+                                    <span>Raw Bytes:</span>
+                                    <span className="font-mono font-bold">500 MB</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span>Output Rows:</span>
+                                    <span className="font-mono">5 Million</span>
+                                </div>
+
+                                <div className="mt-8 space-y-3">
+                                    <div className={`p-2 rounded flex justify-between items-center transition-colors duration-500 ${tick > 20 ? 'bg-[var(--accent-green)] text-white' : 'bg-[var(--bg-color)] opacity-50'}`}>
+                                        <span className="text-xs font-mono">500MB {">"} 256MB</span>
+                                        {tick > 20 && <span>✓</span>}
+                                    </div>
+                                    <div className={`p-2 rounded flex justify-between items-center transition-colors duration-500 ${tick > 40 ? 'bg-[var(--accent-green)] text-white' : 'bg-[var(--bg-color)] opacity-50'}`}>
+                                        <span className="text-xs font-mono">500MB {">"} 5x Median</span>
+                                        {tick > 40 && <span>✓</span>}
+                                    </div>
+                                </div>
+                            </div>
+                            {tick > 50 && (
+                                <div className="absolute bottom-4 left-4 right-4 bg-[var(--accent-green)] text-white text-center py-2 rounded font-bold animate-[fadeIn_0.5s]">
+                                    AQE SPLITS TASK
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Scenario 2 */}
+                        <div className="border-2 border-[var(--accent-red)] rounded-lg p-4 relative flex flex-col bg-[var(--accent-red)] bg-opacity-5">
+                            <h4 className="font-bold text-center border-b border-[var(--accent-red)] border-opacity-30 pb-2 mb-4">Scenario B: Compute Skew</h4>
+                            <div className="space-y-4 flex-1">
+                                <div className="flex justify-between text-sm">
+                                    <span>Raw Bytes:</span>
+                                    <span className="font-mono font-bold">800 KB</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span>Output Rows:</span>
+                                    <span className="font-mono text-[var(--accent-red)] font-bold">16 Million!</span>
+                                </div>
+
+                                <div className="mt-8 space-y-3">
+                                    <div className={`p-2 rounded flex justify-between items-center transition-colors duration-500 ${tick > 30 ? 'bg-[var(--accent-red)] text-white' : 'bg-[var(--bg-color)] opacity-50'}`}>
+                                        <span className="text-xs font-mono">800KB {">"} 256MB</span>
+                                        {tick > 30 && <span>✗ FAIL</span>}
+                                    </div>
+                                    <div className={`p-2 rounded flex justify-between items-center transition-colors duration-500 ${tick > 50 ? 'bg-[var(--bg-color)] border border-[var(--border-color)] opacity-50' : 'bg-[var(--bg-color)] opacity-50'}`}>
+                                        <span className="text-xs font-mono line-through">Check Gate 2</span>
+                                        {tick > 50 && <span>Skipped</span>}
+                                    </div>
+                                </div>
+                            </div>
+                            {tick > 60 && (
+                                <div className="absolute bottom-4 left-4 right-4 bg-[var(--accent-red)] text-white text-center py-2 rounded font-bold animate-[fadeIn_0.5s] shadow-lg">
+                                    AQE MISSES HUB!
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Stage4ComputeGrid({ isPlaying, speed }) {
+            const [tick, setTick] = useState(0);
+
+            useEffect(() => {
+                if (!isPlaying) return;
+                const interval = setInterval(() => {
+                    setTick(t => (t + 1) % 150);
+                }, 60 / speed);
+                return () => clearInterval(interval);
+            }, [isPlaying, speed]);
+
+            const isAsym = tick < 75; // Toggle between symmetric and asymmetric
+
+            const P = 100;
+            const dIn = isAsym ? 10000 : 4000;
+            const dOut = isAsym ? 100 : 4000;
+
+            const rawR = Math.sqrt((dIn * P) / dOut);
+            const rawS = Math.sqrt((dOut * P) / dIn);
+
+            let r = Math.max(1, Math.floor(rawR));
+            let s = Math.max(1, Math.floor(rawS));
+
+            return (
+                <div className="card p-6 stage-enter min-h-[500px] flex flex-col">
+                    <h3 className="text-xl font-bold mb-2">Computing the Grid (r, s)</h3>
+                    <p className="text-sm opacity-80 mb-8 border-b border-[var(--border-color)] pb-4">The planner calculates optimal 2D grid dimensions to minimize communication traffic.</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
+                        {/* Formulas */}
+                        <div className="flex flex-col items-center justify-center space-y-8">
+                            <div className="text-2xl font-serif flex items-center gap-4 bg-[var(--bg-color)] p-6 rounded-xl border border-[var(--border-color)] w-full justify-center">
+                                <span>r ≈ <span style={{color:'var(--accent-blue)'}}>√</span>(d⁻ · P / d⁺)</span>
+                            </div>
+                            <div className="text-2xl font-serif flex items-center gap-4 bg-[var(--bg-color)] p-6 rounded-xl border border-[var(--border-color)] w-full justify-center">
+                                <span>s ≈ <span style={{color:'var(--accent-orange)'}}>√</span>(d⁺ · P / d⁻)</span>
+                            </div>
+                            <div className="text-sm opacity-70 border p-2 rounded bg-yellow-500 bg-opacity-10 border-yellow-500">
+                                Constraint: r × s ≤ P
+                            </div>
+                        </div>
+
+                        {/* Live Calculation */}
+                        <div className="bg-[var(--card-bg)] border-2 border-[var(--accent-purple)] rounded-xl p-6 relative overflow-hidden transition-all duration-500">
+                            <div className="absolute top-0 left-0 w-full p-2 text-center text-xs font-bold text-white uppercase tracking-widest bg-[var(--accent-purple)]">
+                                {isAsym ? "Asymmetric Hub" : "Symmetric Hub"}
+                            </div>
+
+                            <div className="mt-8 space-y-6">
+                                <div className="flex justify-between font-mono border-b border-[var(--border-color)] pb-4">
+                                    <div className="text-center">
+                                        <div className="text-xs opacity-70">d⁻</div>
+                                        <div className="text-xl text-[var(--accent-blue)] font-bold transition-all duration-500">{dIn.toLocaleString()}</div>
+                                    </div>
+                                    <div className="text-center border-l border-r px-6 border-[var(--border-color)]">
+                                        <div className="text-xs opacity-70">Tasks (P)</div>
+                                        <div className="text-xl font-bold">{P}</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-xs opacity-70">d⁺</div>
+                                        <div className="text-xl text-[var(--accent-orange)] font-bold transition-all duration-500">{dOut.toLocaleString()}</div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-2">
+                                    <div className="flex justify-between items-center text-lg font-mono">
+                                        <span>r = √({dIn} × {P} / {dOut})</span>
+                                        <span className="font-bold text-[var(--accent-blue)] transition-all duration-500"> = {r}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-lg font-mono">
+                                        <span>s = √({dOut} × {P} / {dIn})</span>
+                                        <span className="font-bold text-[var(--accent-orange)] transition-all duration-500"> = {s}</span>
+                                    </div>
+                                </div>
+
+                                <div className="pt-6 mt-6 border-t border-[var(--border-color)] text-center">
+                                    <div className="text-sm opacity-70 mb-2">Resulting Grid Structure:</div>
+                                    <div className="text-2xl font-bold font-mono">
+                                        <span style={{color:'var(--accent-blue)'}}>{r}</span>
+                                        <span className="opacity-50 mx-2">×</span>
+                                        <span style={{color:'var(--accent-orange)'}}>{s}</span>
+                                    </div>
+                                    <div className="mt-2 text-sm font-semibold text-[var(--accent-purple)]">
+                                        {isAsym ? "Degenerates to 1D Salting" : "Perfect 2D Hypercube Grid"}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Stage5PartitionShuffle({ isPlaying, speed }) {
+            const [phase, setPhase] = useState(0);
+            // 0: Initial, 1: Blue fly, 2: Blue rep, 3: Orange fly, 4: Orange rep, 5: Join
+
+            useEffect(() => {
+                if (!isPlaying) return;
+
+                const sequence = async () => {
+                    setPhase(0);
+                    await new Promise(r => setTimeout(r, 500 / speed));
+                    setPhase(1); // Blue flies in
+                    await new Promise(r => setTimeout(r, 800 / speed));
+                    setPhase(2); // Blue replicates
+                    await new Promise(r => setTimeout(r, 1000 / speed));
+                    setPhase(3); // Orange flies in
+                    await new Promise(r => setTimeout(r, 800 / speed));
+                    setPhase(4); // Orange replicates
+                    await new Promise(r => setTimeout(r, 1000 / speed));
+                    setPhase(5); // Join highlights
+                    await new Promise(r => setTimeout(r, 2000 / speed));
+                    // Loop
+                    if (isPlaying) setPhase(0);
+                };
+
+                let active = true;
+                const runLoop = async () => {
+                    while (active && isPlaying) {
+                        await sequence();
+                    }
+                };
+                runLoop();
+
+                return () => { active = false; };
+            }, [isPlaying, speed]);
+
+            const r = 10;
+            const s = 10;
+            const targetRow = 3;
+            const targetCol = 5;
+
+            // Stats for P=100 symmetric
+            const dIn = 4000;
+            const dOut = 4000;
+            const P = 100;
+            const topoTraffic = (dIn * s) + (dOut * r); // 80,000
+            const naiveTraffic = (dIn * P) + (dOut * 1); // approx 1D bound: 404,000
+            const ratio = (naiveTraffic / topoTraffic).toFixed(2);
+
+            return (
+                <div className="card p-6 stage-enter min-h-[500px] flex flex-col">
+                    <div className="flex justify-between items-center border-b border-[var(--border-color)] pb-2 mb-4">
+                        <h3 className="text-xl font-bold">Partitioning & Shuffling</h3>
+                        <div className="text-sm font-mono opacity-80">Grid: {r} × {s} (P={P})</div>
+                    </div>
+
+                    <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Animation Area */}
+                        <div className="lg:col-span-2 relative flex items-center justify-center bg-[var(--bg-color)] rounded-xl border border-[var(--border-color)] p-4 overflow-hidden min-h-[350px]">
+
+                            {/* Grid rendering */}
+                            <div className="grid gap-[2px] z-10" style={{ gridTemplateColumns: `repeat(${s}, 1fr)`, width: '300px', height: '300px' }}>
+                                {Array.from({length: r*s}).map((_, i) => {
+                                    const row = Math.floor(i / s);
+                                    const col = i % s;
+                                    const isTargetRow = row === targetRow;
+                                    const isTargetCol = col === targetCol;
+                                    const isJoin = isTargetRow && isTargetCol;
+
+                                    let cellClass = "bg-[var(--card-bg)] border border-[var(--border-color)] opacity-50 transition-all duration-300 rounded-sm relative";
+
+                                    // Highlighting logic based on phase
+                                    if (phase >= 2 && isTargetRow && !isJoin) cellClass += " bg-blue-50 border-blue-200";
+                                    if (phase >= 4 && isTargetCol && !isJoin) cellClass += " bg-orange-50 border-orange-200";
+
+                                    return (
+                                        <div key={i} className={cellClass}>
+                                            {/* Blue row replication line */}
+                                            {isTargetRow && phase >= 2 && (
+                                                <div className="absolute top-1/2 left-0 w-full h-1 bg-[var(--accent-blue)] -translate-y-1/2 rep-row"></div>
+                                            )}
+                                            {/* Orange col replication line */}
+                                            {isTargetCol && phase >= 4 && (
+                                                <div className="absolute left-1/2 top-0 w-1 h-full bg-[var(--accent-orange)] -translate-x-1/2 rep-col"></div>
+                                            )}
+                                            {/* Intersection Pulse */}
+                                            {isJoin && phase >= 5 && (
+                                                <div className="absolute inset-0 z-20 rounded-sm cell-highlight"></div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Incoming Blue Token */}
+                            {phase >= 1 && (
+                                <div className={`absolute z-20 w-4 h-4 rounded-full bg-[var(--accent-blue)] shadow-[0_0_10px_var(--accent-blue)] ${phase === 1 ? 'fly-in-blue' : ''}`}
+                                     style={{ left: phase > 1 ? '50%' : '10%', top: `calc(50% - 150px + ${targetRow * 30 + 15}px)`, transform: phase > 1 ? 'translateX(-150px) scale(1)' : 'none', opacity: phase > 1 ? 0 : 1 }}>
+                                </div>
+                            )}
+
+                            {/* Incoming Orange Token */}
+                            {phase >= 3 && (
+                                <div className={`absolute z-20 w-4 h-4 rounded-full bg-[var(--accent-orange)] shadow-[0_0_10px_var(--accent-orange)] ${phase === 3 ? 'fly-in-orange' : ''}`}
+                                     style={{ top: phase > 3 ? '50%' : '10%', left: `calc(50% - 150px + ${targetCol * 30 + 15}px)`, transform: phase > 3 ? 'translateY(-150px) scale(1)' : 'none', opacity: phase > 3 ? 0 : 1 }}>
+                                </div>
+                            )}
+
+                            {/* Explainer Box overlay */}
+                            <div className="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-black/80 backdrop-blur p-2 rounded text-xs text-center border border-[var(--border-color)] shadow">
+                                {phase === 0 && "Waiting for edges..."}
+                                {phase === 1 && "Incoming Edge hashes to Row 3"}
+                                {phase === 2 && "Incoming Edge clones across all columns in Row 3"}
+                                {phase === 3 && "Outgoing Edge hashes to Col 5"}
+                                {phase === 4 && "Outgoing Edge clones down all rows in Col 5"}
+                                {phase === 5 && <span className="text-[var(--accent-purple)] font-bold">MATCH! Join strictly executes at intersection (3,5)</span>}
+                            </div>
+                        </div>
+
+                        {/* Stats Dashboard */}
+                        <div className="flex flex-col space-y-6">
+                            <h4 className="font-bold text-center border-b border-[var(--border-color)] pb-2">Traffic Comparison</h4>
+
+                            <div className="space-y-2">
+                                <div className="text-sm font-semibold flex justify-between">
+                                    <span>1D Salting</span>
+                                    <span>~{naiveTraffic.toLocaleString()} rows</span>
+                                </div>
+                                <div className="w-full bg-[var(--border-color)] h-3 rounded overflow-hidden">
+                                    <div className="h-full bg-[var(--accent-red)] w-[100%]"></div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="text-sm font-semibold flex justify-between">
+                                    <span>Hypercube 2D</span>
+                                    <span className="text-[var(--accent-green)]">{topoTraffic.toLocaleString()} rows</span>
+                                </div>
+                                <div className="w-full bg-[var(--border-color)] h-3 rounded overflow-hidden">
+                                    <div className="h-full bg-[var(--accent-green)] transition-all duration-1000" style={{ width: phase >= 2 ? '20%' : '0%' }}></div>
+                                </div>
+                                <div className="text-xs opacity-70 font-mono text-right">d⁻·s + d⁺·r</div>
+                            </div>
+
+                            <div className="mt-auto bg-[var(--accent-purple)] bg-opacity-10 border border-[var(--accent-purple)] rounded-lg p-4 text-center">
+                                <div className="text-xs opacity-80 uppercase tracking-wide">Traffic Reduction</div>
+                                <div className="text-4xl font-bold text-[var(--accent-purple)] mt-1 transition-transform duration-500 scale-110">
+                                    {phase >= 4 ? `${ratio}×` : '...'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Stage6BoundedJoin({ isPlaying, speed }) {
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 stage-enter">
+                    <div className="card p-6 min-h-[400px]">
+                        <h3 className="text-xl font-bold mb-4 border-b border-[var(--border-color)] pb-2">Bounded Task Cardinality</h3>
+
+                        <div className="flex flex-col items-center justify-center h-full pb-8">
+                            <div className="text-center space-y-2 mb-8">
+                                <p className="text-sm opacity-70">Total Motif Output</p>
+                                <p className="text-2xl font-mono text-[var(--text-color)] line-through decoration-[var(--accent-red)] decoration-2">16,000,000</p>
+                            </div>
+
+                            <div className="grid grid-cols-5 gap-2 w-full max-w-[300px]">
+                                {Array.from({length: 25}).map((_, i) => (
+                                    <div key={i} className="bg-[var(--accent-blue)] bg-opacity-20 border border-[var(--accent-blue)] rounded text-[8px] font-mono flex items-center justify-center py-2 animate-[fadeIn_0.5s_forwards]" style={{animationDelay: `${(i*0.05)/speed}s`, opacity:0}}>
+                                        160k
+                                    </div>
+                                ))}
+                            </div>
+
+                            <p className="text-sm font-bold mt-8 text-[var(--accent-green)] text-center">
+                                Work is bounded per-cell.<br/>No single task handles the explosion.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="card p-6 min-h-[400px]">
+                        <h3 className="text-xl font-bold mb-4 border-b border-[var(--border-color)] pb-2">Perfectly Balanced Tasks</h3>
+                        <div className="space-y-2 mt-8 font-mono text-sm max-h-[250px] overflow-hidden relative">
+                            {Array.from({length: 8}).map((_, i) => {
+                                const delay = `${(i * 0.1)/speed}s`;
+                                return (
+                                    <div key={i} className="flex items-center gap-3">
+                                        <div className="w-16 text-right opacity-70">T_{Math.floor(i/10)},{i%10}</div>
+                                        <div className="flex-1 bg-[var(--border-color)] h-4 rounded overflow-hidden">
+                                            <div
+                                                className="h-full bg-[var(--accent-green)]"
+                                                style={{
+                                                    width: `${15 + (Math.random() * 2)}%`,
+                                                    transition: `width ${0.5/speed}s linear`,
+                                                    transitionDelay: delay,
+                                                    animation: isPlaying ? 'none' : 'none'
+                                                }}
+                                            ></div>
+                                        </div>
+                                        <div className="w-12 text-right text-[var(--accent-green)] text-xs">
+                                            ~0.6s
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            <div className="text-center opacity-50 text-xs py-2">... 92 more tasks ...</div>
+                        </div>
+                        <div className="mt-8 p-4 bg-[var(--accent-green)] bg-opacity-10 border border-[var(--accent-green)] rounded text-sm text-center font-bold">
+                            Buffer pressure eliminated.<br/>Zero disk spill.
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function Stage7Summary() {
+            const metrics = [
+                { label: "Max Task Duration", naive: "45.2s", topo: "3.2s", better: true },
+                { label: "Task Duration CV", naive: "1.85", topo: "0.09", better: true },
+                { label: "Total Shuffle Bytes", naive: "404 KB", topo: "80 KB", better: true },
+                { label: "Disk Spill Bytes", naive: "142 MB", topo: "0 MB", better: true },
+                { label: "End-to-End Runtime", naive: "48.5s", topo: "4.1s", better: true }
+            ];
+
+            return (
+                <div className="card p-8 stage-enter min-h-[500px] flex flex-col">
+                    <h3 className="text-2xl font-bold mb-2 text-center">Summary Comparison</h3>
+                    <div className="text-center mb-8">
+                        <span className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 text-xs font-semibold px-2.5 py-0.5 rounded border border-yellow-300">
+                            Illustrative Benchmark Framework Metrics (Synthetic Compute-Skewed Hub, P=100)
+                        </span>
+                    </div>
+
+                    <div className="flex-1 flex flex-col gap-4 max-w-4xl mx-auto w-full">
+                        <div className="grid grid-cols-3 gap-4 border-b border-[var(--border-color)] pb-2 font-bold text-sm uppercase tracking-wide opacity-70">
+                            <div>Metric</div>
+                            <div className="text-center text-[var(--accent-red)]">Naive (AQE Miss)</div>
+                            <div className="text-center text-[var(--accent-green)]">Topology-Aware</div>
+                        </div>
+
+                        {metrics.map((m, i) => (
+                            <div key={i} className="grid grid-cols-3 gap-4 items-center py-3 border-b border-[var(--border-color)] hover:bg-[var(--border-color)] hover:bg-opacity-20 transition-colors">
+                                <div className="font-semibold text-sm">{m.label}</div>
+                                <div className="text-center font-mono text-lg">{m.naive}</div>
+                                <div className="text-center font-mono text-lg font-bold text-[var(--accent-green)] flex items-center justify-center gap-2">
+                                    {m.topo}
+                                    {m.better && <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-12 text-center text-sm opacity-80 max-w-2xl mx-auto">
+                        <p>Topology-Aware Skew Handling correctly identifies structural join complexity before execution, utilizing 2D grid hypercube partitioning to provably bound both replicated network traffic and per-task computational load.</p>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- MAIN APP ---
+
+        function App() {
+            const [stage, setStage] = useState(1);
+            const [isPlaying, setIsPlaying] = useState(true);
+            const [speed, setSpeed] = useState(1);
+
+            // Auto advance logic
+            useEffect(() => {
+                if (!isPlaying || stage === STAGES.length) return;
+
+                const currentDuration = STAGES[stage - 1].duration / speed;
+                const timer = setTimeout(() => {
+                    setStage(s => Math.min(s + 1, STAGES.length));
+                }, currentDuration);
+
+                return () => clearTimeout(timer);
+            }, [stage, isPlaying, speed]);
+
+            const playAll = () => {
+                setStage(1);
+                setIsPlaying(true);
+            };
+
+            const toggleTheme = () => {
+                const root = document.documentElement;
+                if (root.getAttribute('data-theme') === 'dark') {
+                    root.setAttribute('data-theme', 'light');
+                } else {
+                    root.setAttribute('data-theme', 'dark');
+                }
+            };
+
+            return (
+                <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
+                    {/* Top Bar Navigation */}
+                    <div className="card p-4 flex flex-col md:flex-row items-center justify-between gap-4 sticky top-4 z-50 shadow-lg">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setIsPlaying(!isPlaying)}
+                                className="w-10 h-10 rounded-full bg-[var(--accent-blue)] text-white flex items-center justify-center hover:bg-blue-600 transition"
+                                title={isPlaying ? "Pause" : "Play"}
+                            >
+                                {isPlaying ? (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                ) : (
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                )}
+                            </button>
+
+                            <div className="flex gap-2">
+                                <button onClick={() => setStage(Math.max(1, stage - 1))} className="px-3 py-1.5 text-sm border border-[var(--border-color)] rounded hover:bg-[var(--border-color)] transition">Prev</button>
+                                <button onClick={() => setStage(Math.min(STAGES.length, stage + 1))} className="px-3 py-1.5 text-sm border border-[var(--border-color)] rounded hover:bg-[var(--border-color)] transition">Next</button>
+                            </div>
+                        </div>
+
+                        <div className="flex-1 flex justify-center w-full overflow-x-auto px-2 scrollbar-hide">
+                            <div className="flex items-center gap-2">
+                                {STAGES.map(s => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => { setStage(s.id); setIsPlaying(false); }}
+                                        className={`rail-btn flex flex-col items-center justify-center min-w-[80px] h-12 rounded px-2 text-xs font-medium border
+                                            ${stage === s.id ? 'active' : stage > s.id ? 'completed' : 'bg-[var(--bg-color)] border-[var(--border-color)] opacity-70'}
+                                        `}
+                                    >
+                                        <span>Stage {s.id}</span>
+                                        <span className="text-[10px] truncate max-w-[70px] font-normal opacity-80">{s.title}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-sm">
+                            <select
+                                value={speed}
+                                onChange={e => setSpeed(Number(e.target.value))}
+                                className="bg-[var(--bg-color)] border border-[var(--border-color)] rounded px-2 py-1 outline-none"
+                            >
+                                <option value={0.5}>0.5x</option>
+                                <option value={1}>1.0x</option>
+                                <option value={2}>2.0x</option>
+                            </select>
+                            <button onClick={playAll} className="text-[var(--accent-blue)] font-medium hover:underline whitespace-nowrap">Play All</button>
+                            <button onClick={toggleTheme} className="p-2 border border-[var(--border-color)] rounded-full hover:bg-[var(--border-color)]" title="Toggle Theme">
+                                🌗
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Progress Bar overall */}
+                    <div className="w-full bg-[var(--border-color)] h-1 rounded-full overflow-hidden">
+                        <div className="h-full bg-[var(--accent-blue)] transition-all duration-500" style={{ width: `${(stage / STAGES.length) * 100}%` }}></div>
+                    </div>
+
+                    {/* Stage Render Area (Each stage maintains its own state via key if we wanted reset, but we use consistent keys so it mounts fresh if we wanted, or we just render the active one) */}
+                    <div className="relative w-full mt-8">
+                        {stage === 1 && <Stage1GraphHub isPlaying={isPlaying} speed={speed} />}
+                        {stage === 2 && <Stage2NaiveSMJ isPlaying={isPlaying} speed={speed} />}
+                        {stage === 3 && <Stage3AQEMisses isPlaying={isPlaying} speed={speed} />}
+                        {stage === 4 && <Stage4ComputeGrid isPlaying={isPlaying} speed={speed} />}
+                        {stage === 5 && <Stage5PartitionShuffle isPlaying={isPlaying} speed={speed} />}
+                        {stage === 6 && <Stage6BoundedJoin isPlaying={isPlaying} speed={speed} />}
+                        {stage === 7 && <Stage7Summary />}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
